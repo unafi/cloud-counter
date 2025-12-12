@@ -4,6 +4,7 @@ import { getConfig } from "@/lib/config";
 import { MultiRegionResourceClient } from "@/lib/multi-region-client";
 import { ConfigManager } from "@/lib/config-manager";
 import { ErrorHandler } from "@/lib/error-handler";
+import { ResourceCoverageAnalyzer } from "@/lib/resource-coverage-analyzer";
 
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
@@ -52,6 +53,10 @@ export async function GET(request: NextRequest) {
         // 統計情報を取得
         const stats = multiRegionClient.getResourceStats(resources);
         
+        // リソースカバレッジ分析を実行
+        const resourceRegions = Object.keys(stats.byRegion);
+        const coverageAnalysis = ResourceCoverageAnalyzer.analyzeCoverage(regions, resourceRegions);
+        
         const responseData = {
             resources,
             lastUpdated: new Date().toISOString(),
@@ -61,7 +66,8 @@ export async function GET(request: NextRequest) {
                 byRegion: stats.byRegion,
                 byType: stats.byType,
                 byStatus: stats.byStatus
-            }
+            },
+            coverage: coverageAnalysis
         };
 
         // キャッシュに保存
