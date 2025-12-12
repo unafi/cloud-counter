@@ -4,10 +4,11 @@
  * Validates: Requirements 4.5, 3.5
  */
 
-import * as fc from 'fast-check';
-import { ConfigManager } from '@/lib/config-manager';
-import fs from 'fs/promises';
-import path from 'path';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import * as fc from 'fast-check'
+import { ConfigManager } from '@/lib/config-manager'
+import fs from 'fs/promises'
+import path from 'path'
 
 // テスト用の一時ファイルパス
 const TEST_ENV_PATH = path.join(process.cwd(), '.env.test');
