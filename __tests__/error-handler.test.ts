@@ -1,4 +1,5 @@
-import { ErrorHandler, ErrorResponse } from '../lib/error-handler';
+import { describe, it, expect, vi } from 'vitest'
+import { ErrorHandler, ErrorResponse } from '../lib/error-handler'
 
 /**
  * **Feature: aws-multi-region, Property 7: 包括的エラーハンドリング**
@@ -211,7 +212,7 @@ describe('ErrorHandler Property Tests', () => {
             try {
                 // 実際の遅延なしでリトライロジックをテスト
                 const originalSleep = (ErrorHandler as any).sleep;
-                (ErrorHandler as any).sleep = jest.fn().mockResolvedValue(undefined);
+                (ErrorHandler as any).sleep = vi.fn().mockResolvedValue(undefined);
                 
                 try {
                     const testConfigs = [

@@ -355,4 +355,53 @@ export class ErrorHandler {
 
     return 'その他のエラー';
   }
+
+  /**
+   * リソースAPIエラーを処理（テスト用エイリアス）
+   * @param region 対象リージョン
+   * @param error エラーオブジェクト
+   * @returns エラーレスポンス
+   */
+  static handleResourceApiError(region: string, error: Error): ErrorResponse {
+    return this.handleResourceError(error, region);
+  }
+
+  /**
+   * 設定ファイルエラーを処理（テスト用エイリアス）
+   * @param error エラーオブジェクト
+   * @returns エラーレスポンス
+   */
+  static handleConfigFileError(error: Error): ErrorResponse {
+    return this.handleConfigError(error);
+  }
+
+  /**
+   * ユーザーフレンドリーなメッセージを生成
+   * @param error エラーオブジェクト
+   * @returns 機密情報をマスクしたメッセージ
+   */
+  static getUserFriendlyMessage(error: Error): string {
+    let message = error.message;
+
+    // 機密情報のパターンをマスク
+    const sensitivePatterns = [
+      /access[_-]?key[_-]?id[:\s]*[a-zA-Z0-9]+/gi,
+      /secret[_-]?access[_-]?key[:\s]*[a-zA-Z0-9/+=]+/gi,
+      /password[:\s]*[^\s]+/gi,
+      /token[:\s]*[a-zA-Z0-9._-]+/gi,
+      /api[_-]?key[:\s]*[a-zA-Z0-9._-]+/gi,
+    ];
+
+    sensitivePatterns.forEach(pattern => {
+      message = message.replace(pattern, (match) => {
+        const parts = match.split(/[:=\s]/);
+        if (parts.length > 1) {
+          return `${parts[0]}: [MASKED]`;
+        }
+        return '[MASKED]';
+      });
+    });
+
+    return message;
+  }
 }

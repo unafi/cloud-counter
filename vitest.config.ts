@@ -82,6 +82,6 @@ export default defineConfig({
   
   // esbuild設定（TypeScript処理）
   esbuild: {
-    target: 'es2020'
+    target: 'es2022' // top-level awaitをサポート
   }
 })

@@ -4,28 +4,30 @@
  * RegionDetector、DiscoveryCacheの統合動作を確認
  */
 
-import { ConfigManager } from '../lib/config-manager';
-import { MultiRegionResourceClient } from '../lib/multi-region-client';
-import { ErrorHandler } from '../lib/error-handler';
-import { RegionDetector } from '../lib/region-detector';
-import { DiscoveryCache } from '../lib/discovery-cache';
-import fs from 'fs/promises';
-import path from 'path';
-import os from 'os';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { ConfigManager } from '../lib/config-manager'
+import { MultiRegionResourceClient } from '../lib/multi-region-client'
+import { ErrorHandler } from '../lib/error-handler'
+import { RegionDetector } from '../lib/region-detector'
+import { DiscoveryCache } from '../lib/discovery-cache'
+import fs from 'fs/promises'
+import path from 'path'
+import os from 'os'
 
 // AWS SDKのモック
-jest.mock('@aws-sdk/client-ec2');
-jest.mock('@aws-sdk/client-lambda');
-jest.mock('@aws-sdk/client-cost-explorer');
-jest.mock('../lib/config');
+vi.mock('@aws-sdk/client-ec2')
+vi.mock('@aws-sdk/client-lambda')
+vi.mock('@aws-sdk/client-cost-explorer')
+vi.mock('../lib/config')
 
-const mockGetConfig = require('../lib/config').getConfig as jest.MockedFunction<typeof import('../lib/config').getConfig>;
+const { getConfig } = await vi.importMock('../lib/config') as { getConfig: ReturnType<typeof vi.fn> }
+const mockGetConfig = vi.mocked(getConfig)
 
 describe('基盤機能の統合テスト', () => {
   let tempDir: string;
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    vi.clearAllMocks()
     
     // テスト用の一時ディレクトリを作成
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'integration-test-'));

@@ -11,12 +11,13 @@ vi.mock('@aws-sdk/client-lambda')
 vi.mock('../lib/config')
 
 // モック設定
-const mockGetConfig = vi.mocked(await import('../lib/config')).getConfig
+const { getConfig } = await vi.importMock('../lib/config') as { getConfig: ReturnType<typeof vi.fn> }
+const mockGetConfig = vi.mocked(getConfig)
 
 describe('MultiRegionResourceClient', () => {
   beforeEach(() => {
     // 各テスト前にモックをリセット
-    jest.clearAllMocks();
+    vi.clearAllMocks()
     
     // デフォルトの認証情報を設定
     mockGetConfig.mockImplementation((key: string) => {

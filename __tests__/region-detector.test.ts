@@ -1,12 +1,13 @@
 /**
  * RegionDetector クラスのテスト
- * Jest/TypeScript問題により、まず基本的な単体テストから開始
+ * Vitestによる基本的な単体テスト
  */
 
-import { RegionDetector } from '../lib/region-detector';
+import { describe, it, expect, vi } from 'vitest'
+import { RegionDetector } from '../lib/region-detector'
 
 // モック設定
-jest.mock('@aws-sdk/client-cost-explorer');
+vi.mock('@aws-sdk/client-cost-explorer')
 
 describe('RegionDetector', () => {
   const mockCredentials = {
@@ -15,7 +16,7 @@ describe('RegionDetector', () => {
   };
 
   describe('基本的な機能テスト', () => {
-    test('RegionDetectorインスタンスが正常に作成される', () => {
+    it('RegionDetectorインスタンスが正常に作成される', () => {
       expect(() => {
         new RegionDetector(mockCredentials);
       }).not.toThrow();
