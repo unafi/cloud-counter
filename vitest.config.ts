@@ -44,19 +44,12 @@ export default defineConfig({
     
     // 並列実行設定
     pool: 'threads',
-    poolOptions: {
-      threads: {
-        singleThread: false,
-        maxThreads: 4,
-        minThreads: 1
-      }
-    },
     
     // ウォッチモード設定
     watch: false, // CIでは無効
     
     // レポーター設定
-    reporter: ['verbose', 'json', 'html'],
+    reporters: ['verbose', 'json', 'html'],
     
     // モック設定
     clearMocks: true,

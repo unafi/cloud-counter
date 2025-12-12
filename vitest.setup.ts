@@ -17,13 +17,25 @@ afterEach(() => {
   // モックのリセットなど
 })
 
-// 環境変数の設定（テスト用）
-process.env.NODE_ENV = 'test'
+// getConfig関数のモック
+import { vi } from 'vitest'
 
-// AWS認証情報のモック（テスト用）
-process.env.AWS_ACCESS_KEY_ID = 'test-access-key'
-process.env.AWS_SECRET_ACCESS_KEY = 'test-secret-key'
+// 環境変数の設定（テスト用）
+process.env.AWS_ACCESS_KEY_ID = 'AKIAIOSFODNN7EXAMPLE'
+process.env.AWS_SECRET_ACCESS_KEY = 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY'
 process.env.AWS_REGION = 'us-east-1'
+
+// configモジュールのモック
+vi.mock('./lib/config', () => ({
+  getConfig: vi.fn((key: string) => {
+    const mockConfig: Record<string, string> = {
+      'AWS_ACCESS_KEY_ID': 'AKIAIOSFODNN7EXAMPLE',
+      'AWS_SECRET_ACCESS_KEY': 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
+      'AWS_REGION': 'us-east-1'
+    }
+    return mockConfig[key] || process.env[key]
+  })
+}))
 
 // コンソールログの制御（必要に応じて）
 const originalConsoleError = console.error
@@ -52,11 +64,6 @@ global.fetch = global.fetch || (() => Promise.resolve({
   status: 200,
   statusText: 'OK'
 } as Response))
-
-// ファイルシステムモック（必要に応じて）
-import { vi } from 'vitest'
-
-// fs/promisesモックを削除（実際のファイルシステムを使用）
 
 // Date.now()のモック（テストの一貫性のため）
 const mockDate = new Date('2024-12-12T10:00:00.000Z')

@@ -53,7 +53,7 @@ export class ErrorHandler {
         message: 'Cost Explorer APIの権限が不足しています',
         action: 'IAMユーザーまたはロールに「ce:GetDimensionValues」権限を追加してください。詳細はAWSコンソールのIAM設定を確認してください。',
         recoverable: true,
-        errorCode: 'CE_UNAUTHORIZED'
+        errorCode: 'COST_EXPLORER_PERMISSION_DENIED'
       };
     }
 
@@ -65,7 +65,7 @@ export class ErrorHandler {
         message: 'Cost Explorer APIのレート制限に達しました',
         action: 'しばらく待ってから再試行してください。通常、1分後に利用可能になります。',
         recoverable: true,
-        errorCode: 'CE_RATE_LIMIT',
+        errorCode: 'COST_EXPLORER_RATE_LIMIT',
         retryAfter: 60
       };
     }
@@ -77,7 +77,7 @@ export class ErrorHandler {
         message: 'Cost Explorer APIへの接続がタイムアウトしました',
         action: 'ネットワーク接続を確認して再試行してください。',
         recoverable: true,
-        errorCode: 'CE_TIMEOUT'
+        errorCode: 'COST_EXPLORER_TIMEOUT'
       };
     }
 
@@ -98,7 +98,7 @@ export class ErrorHandler {
       message: `Cost Explorer APIエラー: ${error.message}`,
       action: 'AWS認証情報とネットワーク接続を確認してください。問題が続く場合は、AWSサービスの状態を確認してください。',
       recoverable: true,
-      errorCode: 'CE_UNKNOWN'
+      errorCode: 'COST_EXPLORER_UNKNOWN'
     };
   }
 
@@ -113,19 +113,21 @@ export class ErrorHandler {
     const regionInfo = region ? ` (リージョン: ${region})` : '';
 
     // 権限不足エラー
-    if (errorMessage.includes('unauthorized') || 
+    if (error.name === 'UnauthorizedOperation' ||
+        errorMessage.includes('unauthorized') || 
         errorMessage.includes('access denied')) {
       return {
         message: `リソースAPIの権限が不足しています${regionInfo}`,
         action: 'IAMユーザーまたはロールに「ReadOnlyAccess」ポリシーを追加してください。',
         recoverable: true,
-        errorCode: 'RESOURCE_UNAUTHORIZED'
+        errorCode: 'RESOURCE_API_PERMISSION_DENIED'
       };
     }
 
     // 無効なリージョンエラー
     if (errorMessage.includes('invalid region') || 
-        errorMessage.includes('region not found')) {
+        errorMessage.includes('region not found') ||
+        errorMessage.includes('region') && errorMessage.includes('not supported')) {
       return {
         message: `無効なリージョンが指定されました: ${region}`,
         action: '有効なAWSリージョン名を確認してください。',
@@ -169,7 +171,7 @@ export class ErrorHandler {
         message: '.env.localファイルへの書き込み権限がありません',
         action: 'ファイルの権限を確認し、書き込み可能にしてください。Windowsの場合は管理者権限で実行してください。',
         recoverable: true,
-        errorCode: 'CONFIG_PERMISSION'
+        errorCode: 'CONFIG_FILE_PERMISSION_DENIED'
       };
     }
 
@@ -180,7 +182,7 @@ export class ErrorHandler {
         message: 'ディスク容量が不足しています',
         action: 'ディスク容量を確保してから再試行してください。',
         recoverable: true,
-        errorCode: 'CONFIG_DISK_FULL'
+        errorCode: 'DISK_SPACE_INSUFFICIENT'
       };
     }
 
@@ -383,24 +385,14 @@ export class ErrorHandler {
   static getUserFriendlyMessage(error: Error): string {
     let message = error.message;
 
-    // 機密情報のパターンをマスク
-    const sensitivePatterns = [
-      /access[_-]?key[_-]?id[:\s]*[a-zA-Z0-9]+/gi,
-      /secret[_-]?access[_-]?key[:\s]*[a-zA-Z0-9/+=]+/gi,
-      /password[:\s]*[^\s]+/gi,
-      /token[:\s]*[a-zA-Z0-9._-]+/gi,
-      /api[_-]?key[:\s]*[a-zA-Z0-9._-]+/gi,
-    ];
-
-    sensitivePatterns.forEach(pattern => {
-      message = message.replace(pattern, (match) => {
-        const parts = match.split(/[:=\s]/);
-        if (parts.length > 1) {
-          return `${parts[0]}: [MASKED]`;
-        }
-        return '[MASKED]';
-      });
-    });
+    // AWS Access Key IDのマスキング (AKIA で始まる20文字) - 最優先で処理
+    message = message.replace(/AKIA[A-Z0-9]{16}/g, 'AKIA****');
+    
+    // AWS Secret Access Keyのマスキング (40文字の英数字/記号) - 2番目に処理
+    message = message.replace(/[A-Za-z0-9/+=]{40}/g, '****');
+    
+    // IPアドレスのマスキング
+    message = message.replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g, '***.***.***.**');
 
     return message;
   }

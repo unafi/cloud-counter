@@ -18,6 +18,18 @@ import os from 'os'
 vi.mock('@aws-sdk/client-ec2')
 vi.mock('@aws-sdk/client-lambda')
 vi.mock('@aws-sdk/client-cost-explorer')
+
+// configモジュールのモック
+vi.mock('../lib/config', () => ({
+  getConfig: vi.fn((key: string) => {
+    const mockConfig: Record<string, string> = {
+      'AWS_ACCESS_KEY_ID': 'AKIAIOSFODNN7EXAMPLE',
+      'AWS_SECRET_ACCESS_KEY': 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
+      'AWS_REGION': 'us-east-1'
+    }
+    return mockConfig[key] || process.env[key]
+  })
+}))
 vi.mock('../lib/config')
 
 const { getConfig } = await vi.importMock('../lib/config') as { getConfig: ReturnType<typeof vi.fn> }
