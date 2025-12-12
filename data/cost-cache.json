@@ -1,89 +1,4 @@
 {
-  "aws": {
-    "total": -1e-10,
-    "currency": "USD",
-    "period": {
-      "start": "2025-11-30",
-      "end": "2025-12-30"
-    },
-    "details": [
-      {
-        "service_name": "AWS Glue",
-        "region": "ap-northeast-1",
-        "cost": "0",
-        "usage": "2",
-        "cost_unit": "USD",
-        "usage_unit": "N/A"
-      },
-      {
-        "service_name": "Amazon Simple Notification Service",
-        "region": "ap-northeast-1",
-        "cost": "0",
-        "usage": "1",
-        "cost_unit": "USD",
-        "usage_unit": "N/A"
-      },
-      {
-        "service_name": "Amazon Simple Storage Service",
-        "region": "ap-northeast-1",
-        "cost": "-0.0000000001",
-        "usage": "0.0000415369",
-        "cost_unit": "USD",
-        "usage_unit": "N/A"
-      },
-      {
-        "service_name": "Amazon Simple Storage Service",
-        "region": "global",
-        "cost": "0",
-        "usage": "0.0013888889",
-        "cost_unit": "USD",
-        "usage_unit": "N/A"
-      },
-      {
-        "service_name": "AmazonCloudWatch",
-        "region": "ap-northeast-1",
-        "cost": "0",
-        "usage": "0.0000005835",
-        "cost_unit": "USD",
-        "usage_unit": "N/A"
-      }
-    ],
-    "lastUpdated": "2025-12-11T06:20:26.883Z"
-  },
-  "azure": {
-    "total": 0,
-    "currency": "JPY",
-    "period": {
-      "start": "2025-11-30",
-      "end": "2025-12-30"
-    },
-    "details": [],
-    "lastUpdated": "2025-12-11T06:20:38.659Z"
-  },
-  "google": {
-    "total": 0,
-    "currency": "JPY",
-    "period": {
-      "start": "2025-11-30",
-      "end": "2025-12-30"
-    },
-    "details": [
-      {
-        "service_name": "GCP Billing Account: 請求先アカウント",
-        "region": "global",
-        "cost": "0",
-        "usage": "Active",
-        "cost_unit": "JPY",
-        "usage_unit": "Status"
-      }
-    ],
-    "message": "Connection successful. Found accounts: 請求先アカウント.",
-    "lastUpdated": "2025-12-11T06:20:27.160Z"
-  },
-  "azure_resources": {
-    "resources": [],
-    "lastUpdated": "2025-12-12T01:20:26.105Z"
-  },
   "aws_resources": {
     "resources": [
       {
@@ -96,11 +11,11 @@
         "crossRegionId": "lambda-ap-northeast-1-p1-line-bot",
         "details": "nodejs20.x",
         "availability": "ap-northeast-1",
-        "lastSeen": "2025-12-12T01:20:25.357Z",
+        "lastSeen": "2025-12-12T03:47:50.530Z",
         "resourceArn": "arn:aws:lambda:ap-northeast-1:886925325518:function:p1-line-bot"
       }
     ],
-    "lastUpdated": "2025-12-12T01:20:26.056Z",
+    "lastUpdated": "2025-12-12T03:47:51.480Z",
     "regionCount": 2,
     "stats": {
       "totalResources": 1,
@@ -115,8 +30,8 @@
       }
     }
   },
-  "google_resources": {
+  "azure_resources": {
     "resources": [],
-    "lastUpdated": "2025-12-11T08:39:23.554Z"
+    "lastUpdated": "2025-12-12T03:47:50.672Z"
   }
 }

@@ -1,5 +1,6 @@
 import { EC2Client, DescribeInstancesCommand } from "@aws-sdk/client-ec2";
 import { LambdaClient, ListFunctionsCommand } from "@aws-sdk/client-lambda";
+import { S3Client, ListBucketsCommand, GetBucketLocationCommand } from "@aws-sdk/client-s3";
 import { getConfig } from './config';
 
 /**
@@ -18,6 +19,9 @@ export interface CloudResource {
     availability?: string; // リージョンの可用性情報
     lastSeen?: string; // 最後に確認された日時
     resourceArn?: string; // AWS ARN（利用可能な場合）
+    // S3固有の追加フィールド
+    actualLocation?: string; // S3バケットの実際の物理的場所
+    billingRegion?: string; // 課金が発生しているリージョン
 }
 
 /**
@@ -104,12 +108,13 @@ export class MultiRegionResourceClient {
      */
     async getResourcesFromRegion(region: string): Promise<RegionResult> {
         try {
-            const [ec2Resources, lambdaResources] = await Promise.all([
+            const [ec2Resources, lambdaResources, s3Resources] = await Promise.all([
                 this.getEC2Resources(region),
-                this.getLambdaResources(region)
+                this.getLambdaResources(region),
+                this.getS3Resources(region)
             ]);
 
-            const allResources = [...ec2Resources, ...lambdaResources];
+            const allResources = [...ec2Resources, ...lambdaResources, ...s3Resources];
 
             return {
                 region,
@@ -204,6 +209,93 @@ export class MultiRegionResourceClient {
 
         } catch (error: any) {
             console.warn(`Lambda関数取得エラー (${region}):`, error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * S3バケットを取得
+     * @param region 対象リージョン
+     * @returns S3リソースリスト
+     */
+    private async getS3Resources(region: string): Promise<CloudResource[]> {
+        try {
+            const s3Client = new S3Client({
+                region,
+                credentials: this.credentials
+            });
+
+            // S3バケットはグローバルなので、us-east-1でのみ一度取得
+            if (region !== 'us-east-1') {
+                return [];
+            }
+
+            const listCommand = new ListBucketsCommand({});
+            const response = await s3Client.send(listCommand);
+
+            const buckets: CloudResource[] = [];
+
+            if (response.Buckets) {
+                // 各バケットの実際の場所を並行取得
+                const bucketLocationPromises = response.Buckets.map(async (bucket) => {
+                    try {
+                        const locationCommand = new GetBucketLocationCommand({
+                            Bucket: bucket.Name!
+                        });
+                        const locationResponse = await s3Client.send(locationCommand);
+                        
+                        // LocationConstraintがnullの場合はus-east-1
+                        const actualLocation = locationResponse.LocationConstraint || 'us-east-1';
+                        
+                        return {
+                            id: `arn:aws:s3:::${bucket.Name}`,
+                            name: bucket.Name || 'Unknown',
+                            type: "S3",
+                            status: "Active",
+                            region: region, // 課金・検出されたリージョン
+                            regionDisplayName: this.getRegionDisplayName(region),
+                            crossRegionId: `s3-${region}-${bucket.Name}`,
+                            details: `Created: ${bucket.CreationDate?.toISOString().split('T')[0]}`,
+                            availability: actualLocation, // 実際の物理的場所
+                            lastSeen: new Date().toISOString(),
+                            resourceArn: `arn:aws:s3:::${bucket.Name}`,
+                            actualLocation: actualLocation,
+                            billingRegion: region
+                        };
+                    } catch (error: any) {
+                        console.warn(`バケット ${bucket.Name} の場所取得エラー:`, error.message);
+                        // エラーの場合でもバケット情報は返す
+                        return {
+                            id: `arn:aws:s3:::${bucket.Name}`,
+                            name: bucket.Name || 'Unknown',
+                            type: "S3",
+                            status: "Active",
+                            region: region,
+                            regionDisplayName: this.getRegionDisplayName(region),
+                            crossRegionId: `s3-${region}-${bucket.Name}`,
+                            details: `Created: ${bucket.CreationDate?.toISOString().split('T')[0]} (Location: Unknown)`,
+                            availability: 'Unknown',
+                            lastSeen: new Date().toISOString(),
+                            resourceArn: `arn:aws:s3:::${bucket.Name}`,
+                            actualLocation: 'Unknown',
+                            billingRegion: region
+                        };
+                    }
+                });
+
+                const bucketResults = await Promise.allSettled(bucketLocationPromises);
+                
+                bucketResults.forEach((result) => {
+                    if (result.status === 'fulfilled') {
+                        buckets.push(result.value);
+                    }
+                });
+            }
+
+            return buckets;
+
+        } catch (error: any) {
+            console.warn(`S3バケット取得エラー (${region}):`, error.message);
             throw error;
         }
     }
