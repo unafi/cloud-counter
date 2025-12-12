@@ -1,0 +1,1 @@
+C:/Users/hide/.gemini/antigravity/brain/06237e0d-f71a-4d4c-a55b-7dcff4a231a0/implementation_plan.md
