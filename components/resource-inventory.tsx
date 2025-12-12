@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, Server, Box, RefreshCw, Layers, Database, Search } from "lucide-react";
+import { Loader2, Server, Box, RefreshCw, Layers, Database, Search, AlertTriangle, Info } from "lucide-react";
 
 type CloudResource = {
     id: string;
@@ -20,6 +20,22 @@ type CloudResource = {
     billingRegion?: string; // 課金が発生しているリージョン
 };
 
+type CoverageAnalysis = {
+    hasUncoveredResources: boolean;
+    uncoveredRegions: string[];
+    coveredRegions: string[];
+    totalDiscoveredRegions: number;
+    totalCoveredRegions: number;
+    coveragePercentage: number;
+    alertMessage?: string;
+    recommendedActions: {
+        service: string;
+        description: string;
+        requiredPermissions: string[];
+        estimatedCost: string;
+    }[];
+};
+
 type ResourceResponse = {
     resources: CloudResource[];
     lastUpdated?: string;
@@ -30,6 +46,7 @@ type ResourceResponse = {
         byType: { [type: string]: number };
         byStatus: { [status: string]: number };
     };
+    coverage?: CoverageAnalysis;
     error?: string;
 };
 
@@ -40,6 +57,8 @@ export default function ResourceInventory() {
     const [lastUpdated, setLastUpdated] = useState<string | null>(null);
     const [stats, setStats] = useState<ResourceResponse['stats'] | null>(null);
     const [regionCount, setRegionCount] = useState<number>(0);
+    const [coverage, setCoverage] = useState<CoverageAnalysis | null>(null);
+    const [showCoverageDetails, setShowCoverageDetails] = useState(false);
 
     // プロバイダー判定（簡易）
     const getProvider = (type: string) => {
@@ -101,6 +120,7 @@ export default function ResourceInventory() {
             setResources(allResources);
             setStats(combinedStats);
             setRegionCount(aws.regionCount || Object.keys(combinedStats.byRegion).length);
+            setCoverage(aws.coverage || null);
         } catch (e) {
             console.error("Failed to fetch resources", e);
         } finally {
@@ -165,6 +185,7 @@ export default function ResourceInventory() {
             setResources(allResources);
             setStats(combinedStats);
             setRegionCount(aws.regionCount || Object.keys(combinedStats.byRegion).length);
+            setCoverage(aws.coverage || null);
         } catch (e) {
             console.error("Failed to load cached resources", e);
         } finally {
@@ -182,6 +203,79 @@ export default function ResourceInventory() {
 
     return (
         <div className="space-y-4">
+            {/* カバレッジアラート */}
+            {coverage && coverage.hasUncoveredResources && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <div className="flex items-start">
+                        <AlertTriangle className="w-5 h-5 text-amber-600 mr-3 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                            <h4 className="text-sm font-medium text-amber-800 mb-2">
+                                未対応サービスの検出
+                            </h4>
+                            <p className="text-sm text-amber-700 mb-3">
+                                {coverage.alertMessage}
+                            </p>
+                            <div className="flex items-center justify-between">
+                                <div className="text-xs text-amber-600">
+                                    カバレッジ: {coverage.coveragePercentage}% 
+                                    ({coverage.totalCoveredRegions}/{coverage.totalDiscoveredRegions} リージョン)
+                                </div>
+                                <button
+                                    onClick={() => setShowCoverageDetails(!showCoverageDetails)}
+                                    className="text-xs text-amber-700 hover:text-amber-800 underline"
+                                >
+                                    {showCoverageDetails ? '詳細を隠す' : '対応方法を見る'}
+                                </button>
+                            </div>
+                            
+                            {showCoverageDetails && (
+                                <div className="mt-4 space-y-3">
+                                    <div className="text-sm text-amber-800 font-medium">
+                                        推奨される対応:
+                                    </div>
+                                    {coverage.recommendedActions.map((action, index) => (
+                                        <div key={index} className="bg-white rounded p-3 border border-amber-200">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <h5 className="text-sm font-medium text-slate-800">
+                                                    {action.service}
+                                                </h5>
+                                                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                                                    {action.estimatedCost}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-slate-600 mb-2">
+                                                {action.description}
+                                            </p>
+                                            <details className="text-xs">
+                                                <summary className="text-slate-500 cursor-pointer hover:text-slate-700">
+                                                    必要な権限を表示
+                                                </summary>
+                                                <div className="mt-2 bg-slate-50 p-2 rounded font-mono text-xs">
+                                                    {action.requiredPermissions.map((permission, i) => (
+                                                        <div key={i}>"{permission}",</div>
+                                                    ))}
+                                                </div>
+                                            </details>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+            
+            {/* カバレッジ情報（問題がない場合） */}
+            {coverage && !coverage.hasUncoveredResources && coverage.totalDiscoveredRegions > 0 && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                    <div className="flex items-center">
+                        <Info className="w-4 h-4 text-green-600 mr-2" />
+                        <span className="text-sm text-green-700">
+                            全てのアクティブリージョン（{coverage.totalDiscoveredRegions}個）でリソースが正常に取得されています
+                        </span>
+                    </div>
+                </div>
+            )}
             <div className="flex justify-between items-center">
                 <div>
                     <h3 className="text-lg font-semibold text-slate-900 flex items-center">

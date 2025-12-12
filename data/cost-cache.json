@@ -11,11 +11,11 @@
         "crossRegionId": "lambda-ap-northeast-1-p1-line-bot",
         "details": "nodejs20.x",
         "availability": "ap-northeast-1",
-        "lastSeen": "2025-12-12T03:47:50.530Z",
+        "lastSeen": "2025-12-12T04:24:17.181Z",
         "resourceArn": "arn:aws:lambda:ap-northeast-1:886925325518:function:p1-line-bot"
       }
     ],
-    "lastUpdated": "2025-12-12T03:47:51.480Z",
+    "lastUpdated": "2025-12-12T04:24:17.956Z",
     "regionCount": 2,
     "stats": {
       "totalResources": 1,
@@ -28,6 +28,64 @@
       "byStatus": {
         "Active": 1
       }
+    },
+    "coverage": {
+      "hasUncoveredResources": true,
+      "uncoveredRegions": [
+        "us-east-1"
+      ],
+      "coveredRegions": [
+        "ap-northeast-1"
+      ],
+      "totalDiscoveredRegions": 2,
+      "totalCoveredRegions": 1,
+      "coveragePercentage": 50,
+      "alertMessage": "1個のリージョン（us-east-1）で未対応のAWSサービスが検出されました。これらのリージョンではEC2、Lambda、S3以外のサービスが使用されている可能性があります。",
+      "recommendedActions": [
+        {
+          "service": "データベースサービス (RDS, DynamoDB)",
+          "description": "リレーショナルデータベースやNoSQLデータベースの情報を取得",
+          "requiredPermissions": [
+            "rds:DescribeDBInstances",
+            "rds:DescribeDBClusters",
+            "dynamodb:ListTables",
+            "dynamodb:DescribeTable"
+          ],
+          "estimatedCost": "無料"
+        },
+        {
+          "service": "コンテナサービス (ECS, EKS)",
+          "description": "コンテナクラスターとサービスの情報を取得",
+          "requiredPermissions": [
+            "ecs:ListClusters",
+            "ecs:DescribeClusters",
+            "ecs:ListServices",
+            "eks:ListClusters",
+            "eks:DescribeCluster"
+          ],
+          "estimatedCost": "無料"
+        },
+        {
+          "service": "ストレージサービス (EBS, EFS)",
+          "description": "ブロックストレージとファイルシステムの情報を取得",
+          "requiredPermissions": [
+            "ec2:DescribeVolumes",
+            "efs:DescribeFileSystems"
+          ],
+          "estimatedCost": "無料"
+        },
+        {
+          "service": "ネットワークサービス (VPC, Load Balancer)",
+          "description": "VPCとロードバランサーの情報を取得",
+          "requiredPermissions": [
+            "ec2:DescribeVpcs",
+            "ec2:DescribeSubnets",
+            "elbv2:DescribeLoadBalancers",
+            "elb:DescribeLoadBalancers"
+          ],
+          "estimatedCost": "無料"
+        }
+      ]
     }
   },
   "azure_resources": {
