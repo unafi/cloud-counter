@@ -2,15 +2,16 @@
  * MultiRegionResourceClient クラスのテスト
  */
 
-import { MultiRegionResourceClient, CloudResource } from '../lib/multi-region-client';
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { MultiRegionResourceClient, CloudResource } from '../lib/multi-region-client'
 
 // AWS SDKのモック
-jest.mock('@aws-sdk/client-ec2');
-jest.mock('@aws-sdk/client-lambda');
-jest.mock('../lib/config');
+vi.mock('@aws-sdk/client-ec2')
+vi.mock('@aws-sdk/client-lambda')
+vi.mock('../lib/config')
 
 // モック設定
-const mockGetConfig = require('../lib/config').getConfig as jest.MockedFunction<typeof import('../lib/config').getConfig>;
+const mockGetConfig = vi.mocked(await import('../lib/config')).getConfig
 
 describe('MultiRegionResourceClient', () => {
   beforeEach(() => {
